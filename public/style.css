@@ -1,0 +1,19 @@
+#header{
+    background-color: blue;
+    text-align:center;
+    font-size: xx-large;
+    width: 100%;
+    height: 10%;
+}
+form{
+    margin-top: 2em;
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    justify-content: space-evenly;
+}
+.flexContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}

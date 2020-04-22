@@ -1,0 +1,43 @@
+<html>
+    <body onload="myFunction()">
+        <link rel="stylesheet" href="style.css">
+        <header id="header">
+            Stock Price Alerter
+        </header>
+            <form action='/new' method="POST">
+                <input type="text" id="stockId" name="stockId" placeholder="StockId" required>
+                <input type="text" id="lowerLimit" name="lowerLimit" placeholder="lowerLimit">
+                <input type="text" id="upperLimit" name="upperLimit" placeholder="upperLimit">
+                <button type="submit">Submit</button>
+            </form>
+        <hr>
+        <h1>Stocks to Watch</h1>       
+        <div id="allStocks">
+            <%items.stocks.forEach(function(item){%>
+                <div class="flexContainer">
+                    <div><%= item.stockId %></div>
+                    <div><%= item.lowerLimit %></div>
+                    <div><%= item.upperLimit %></div>
+                    <div><%= item.currentPrice %></div>
+                </div>
+            <%})%>
+        </div> 
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script>
+            function myFunction() {
+              setInterval(function(){
+                const Http = new XMLHttpRequest();
+                const url='http://localhost:4000/update';
+                Http.open("GET", url);
+                Http.send();
+                Http.onreadystatechange = (e) => {
+                  console.log(Http.responseText)
+                  console.log("updated");
+                  location.reload();
+                }
+                },60000);
+            }
+            </script>
+        </script>      
+    </body>
+</html>
