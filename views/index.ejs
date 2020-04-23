@@ -15,19 +15,28 @@
         <div id="allStocks">
             <%items.stocks.forEach(function(item){%>
                 <div class="flexContainer">
-                    <div><%= item.stockId %></div>
-                    <div><%= item.lowerLimit %></div>
-                    <div><%= item.upperLimit %></div>
-                    <div><%= item.currentPrice %></div>
+                    <div ><%= item.stockId %></div>
+                    <div ><%= item.lowerLimit %></div>
+                    <button onclick="changeLowerLimit()" class="btn">ChangeLowerLimits</button>
+                    <div ><%= item.upperLimit %></div>
+                    <button onclick="changeUpperLimit()" class="btn">ChangeUpperLimits</button>
+                    <div ><%= item.currentPrice %></div>
                 </div>
             <%})%>
-        </div> 
+        </div>        
+        <script>
+            var btns=document.getElementsByClassName("btn");
+            var counter = 1;
+            for (var i=0;i<btns.length;i++){
+                btns[i].id=(counter++);
+            }
+        </script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script>
             function myFunction() {
               setInterval(function(){
                 const Http = new XMLHttpRequest();
-                const url='http://localhost:4000/update';
+                const url='http://localhost:4001/update';
                 Http.open("GET", url);
                 Http.send();
                 Http.onreadystatechange = (e) => {
@@ -35,7 +44,43 @@
                   console.log("updated");
                   location.reload();
                 }
-                },60000);
+                },20000);
+            };                  
+            function changeLowerLimit(){
+                var btnId=this.event.target.id;
+                var price = prompt("Enter new lower limit");
+                document.getElementById(btnId).previousElementSibling.innerHTML = price;
+                const data = ({
+                    "stockId":document.getElementById(btnId).previousElementSibling.previousElementSibling.innerHTML,
+                    "lowerLimit":document.getElementById(btnId).previousElementSibling.innerHTML,
+                    "upperLimit":document.getElementById(btnId).nextElementSibling.innerHTML
+                })
+                console.log(data);
+                const jsonString = JSON.stringify(data);
+                fetch('/change',{
+                    method: 'POST' ,
+                    headers:{
+                        'Content-Type':'application/json'},
+                    body : jsonString
+                })
+            }
+            function changeUpperLimit(){
+                var btnId=this.event.target.id;
+                var price = prompt("Enter new upper limit");
+                document.getElementById(btnId).previousElementSibling.innerHTML = price;
+                const data = ({
+                    "stockId":document.getElementById(btnId).previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML,
+                    "lowerLimit":document.getElementById(btnId).previousElementSibling.previousElementSibling.previousElementSibling.innerHTML,
+                    "upperLimit":document.getElementById(btnId).previousElementSibling.innerHTML
+                })
+                console.log(data);
+                const jsonString = JSON.stringify(data);
+                fetch('/change',{
+                    method: 'POST' ,
+                    headers:{
+                        'Content-Type':'application/json'},
+                    body : jsonString
+                })
             }
             </script>
         </script>      

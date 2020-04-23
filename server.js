@@ -1,13 +1,10 @@
 require('dotenv').config();
-const sgMail = require('@sendgrid/mail')
-sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 const express = require('express')
 const cheerio = require('cheerio');
 const request = require('request');
 const nodemailer = require('nodemailer');
-
 const app = express()
-// const API_KEY="Q82L97NQJI8A33PI"
+app.use(require("body-parser").json())
 app.use(express.urlencoded({extended:false}))
 var JSONStocks = '{"stocks":[]}' // JSON stocks is a json STRING
 app.set('view-engine','ejs')
@@ -19,7 +16,7 @@ function sendEmailTesting(message){
         service: 'gmail',
         auth: {
           user: 'atharva.sarage@gmail.com',
-          pass:  // password here
+          pass:  ''// password
         }
       });      
       var mailOptions = {
@@ -41,7 +38,6 @@ app.get('/',(req,res)=>{
     console.log(JSONStocks)
     console.log("/ route")        
     res.render('index.ejs',{items: JSON.parse(JSONStocks)});
-
     counter = 0;
 })
 app.post('/new',(req,res)=>{   
@@ -50,7 +46,7 @@ app.post('/new',(req,res)=>{
         "lowerLimit":req.body.lowerLimit,
         "upperLimit":req.body.upperLimit
     })
-   main(newStock.stockId,res,newStock,callback,1);   
+   main(newStock.stockId,res,-1,newStock,callback,1);   
 
 }) 
 app.get('/update',(req,res)=>{
@@ -59,12 +55,27 @@ app.get('/update',(req,res)=>{
     stocks = JSON.parse(JSONStocks)
     for(var i=0;i<stocks["stocks"].length;i++){
         if(i== (stocks["stocks"].length -1) )
-            main(stocks["stocks"][i].stockId,res,stocks["stocks"][i],callback2,0);   
+            main(stocks["stocks"][i].stockId,res,i,stocks["stocks"][i],callback2,0);   
         else
-            main(stocks["stocks"][i].stockId,res,stocks["stocks"][i],callback2,0); 
+            main(stocks["stocks"][i].stockId,res,i,stocks["stocks"][i],callback2,0); 
     }      
 })
-app.listen(4000,()=>console.log('listening on 4000'))
+app.post('/change',(req,res)=>{
+    console.log("change post request");
+    console.log(req.body);
+    stocks = JSON.parse(JSONStocks)
+    for(var i=0;i<stocks["stocks"].length;i++){
+        if(stocks["stocks"][i].stockId === req.body.stockId){
+            stocks["stocks"][i].stockId=req.body.stockId;
+            stocks["stocks"][i].lowerLimit=req.body.lowerLimit;
+            stocks["stocks"][i].upperLimit=req.body.upperLimit;
+            JSONStocks = JSON.stringify(stocks);
+            res.redirect('/');
+            break;
+        }            
+    }
+})
+app.listen(4001,()=>console.log('listening on 4001'))
 function getCurrentPrice(stockId) {
     console.log("check price")
     var price;
@@ -80,15 +91,24 @@ function getCurrentPrice(stockId) {
             });
     });
 }
-async function main(stockId,res,newStock,callback,flag2){
+async function main(stockId,res,idx,newStock,callback,flag2){
     var price = await getCurrentPrice(stockId);
     newStock["currentPrice"]=price
+    if(idx!=-1){
+        stocks=JSON.parse(JSONStocks);
+        console.log("newstock");
+        console.log(newStock);        
+        stocks["stocks"][idx]=newStock;
+        console.log(stocks);
+        JSONStocks=JSON.stringify(stocks);
+        console.log("done")
+        console.log(JSONStocks);
+    }
     console.log(newStock["currentPrice"]+newStock["lowerLimit"]+newStock["upperLimit"])
-    if(newStock["currentPrice"]>newStock["upperLimit"])
+    if(parseFloat(newStock["currentPrice"])>parseFloat(newStock["upperLimit"]))
         sendEmailTesting(newStock["stockId"]+"has crossed upper limit");
-    else if(newStock["currentPrice"]<newStock["lowerLimit"])
+    else if(parseFloat(newStock["currentPrice"])<parseFloat(newStock["lowerLimit"]))
         sendEmailTesting(newStock["stockId"]+"has crossed lower limit");
-
     console.log(newStock["currentPrice"])    
     if(flag2 == 1)
         callback(res,newStock)
@@ -111,7 +131,9 @@ function callback(res,newStock){
 function callback2(res){
     counter++;
     console.log(counter)
+    console.log(JSONStocks)
     stocks = JSON.parse(JSONStocks)
+    console.log(stocks);
     if(counter == stocks["stocks"].length){
         JSONStocks = JSON.stringify(stocks); // stringify to json string , parse to javascript object     
         res.redirect('/');
