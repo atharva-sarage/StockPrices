@@ -6,6 +6,8 @@
         </header>
             <form action='/new' method="POST">
                 <input type="text" id="stockId" name="stockId" placeholder="StockId" required>
+                <input type="text" id="buyPrice" name="buyPrice" placeholder="buying Price">
+                <input type="text" id="amountPurchaced" name="amountPurchaced" placeholder="amount Purchased">
                 <input type="text" id="lowerLimit" name="lowerLimit" placeholder="lowerLimit">
                 <input type="text" id="upperLimit" name="upperLimit" placeholder="upperLimit">
                 <button type="submit">Submit</button>
@@ -21,6 +23,7 @@
                     <div ><%= item.upperLimit %></div>
                     <button onclick="changeUpperLimit()" class="btn">ChangeUpperLimits</button>
                     <div ><%= item.currentPrice %></div>
+                    <div><%= ((parseFloat(item.currentPrice) - parseFloat(item.buyPrice)) * (parseFloat(item.amountPurchaced) / parseFloat(item.buyPrice))).toFixed(2) %></div>
                 </div>
             <%})%>
         </div>        
