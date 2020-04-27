@@ -54,6 +54,19 @@ app.post('/change',(req,res)=>{
         }            
     }
 })
+app.post('/delete',(req,res)=>{
+    console.log("delete post request");
+    console.log(req.body);
+    stocks = JSON.parse(JSONStocks)
+    for(var i=0;i<stocks["stocks"].length;i++){
+        if(stocks["stocks"][i].stockId === req.body.stockId){
+            stocks["stocks"].splice(i,1);
+            JSONStocks = JSON.stringify(stocks);
+            res.redirect('/');
+            break;
+        }            
+    }
+})
 app.listen(4001,()=>console.log('listening on 4001'))
 
 function getCurrentPrice(stockId) {
@@ -79,7 +92,7 @@ async function main(stockId,res,idx,newStock,callback,flag2){
     },function(error) {
         console.error("Failed!", error);
     })
-
+    price.split(',').join('')
     console.log(price);
     newStock["currentPrice"]=price
     if(idx!=-1){

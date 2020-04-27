@@ -4,7 +4,9 @@
         <header id="header">
             Stock Price Alerter
         </header>
-            <form action='/new' method="POST">
+            <button id="inputDialog" onclick="clickFun()">CLick</button>
+            <h2>Add stock to watch</h2>
+            <form id="form" action='/new' method="POST">
                 <input type="text" id="stockId" name="stockId" placeholder="StockId" required>
                 <input type="text" id="buyPrice" name="buyPrice" placeholder="buying Price">
                 <input type="text" id="amountPurchaced" name="amountPurchaced" placeholder="amount Purchased">
@@ -13,19 +15,34 @@
                 <button type="submit">Submit</button>
             </form>
         <hr>
-        <h1>Stocks to Watch</h1>       
-        <div id="allStocks">
-            <%items.stocks.forEach(function(item){%>
-                <div class="flexContainer">
-                    <div ><%= item.stockId %></div>
-                    <div ><%= item.lowerLimit %></div>
-                    <button onclick="changeLowerLimit()" class="btn">ChangeLowerLimits</button>
-                    <div ><%= item.upperLimit %></div>
-                    <button onclick="changeUpperLimit()" class="btn">ChangeUpperLimits</button>
-                    <div ><%= item.currentPrice %></div>
-                    <div><%= ((parseFloat(item.currentPrice) - parseFloat(item.buyPrice)) * (parseFloat(item.amountPurchaced) / parseFloat(item.buyPrice))).toFixed(2) %></div>
-                </div>
-            <%})%>
+        <div id="stockList">
+            <h1>Stocks to Watch</h1>  
+            <table class="content-table">  
+                <thead>
+                    <tr>
+                        <td>Stock Id</td>
+                        <td>Lower Limit</td>
+                        <td>Upper Limit</td>
+                        <td>Current Price</td>
+                        <td>Gains</td>
+                        <td>Action</td>
+                    </tr>  
+                </thead>                  
+                <%items.stocks.forEach(function(item){%>
+                    <tr>
+                        <td onload="refresh()"><%= item.stockId %></td>
+                        <td onclick="changeLowerLimit()" class="btn"><%= item.lowerLimit %></td>
+                        <td onclick="changeUpperLimit()" class="btn"><%= item.upperLimit %></td>
+                        <td ><%= item.currentPrice %></td>
+                        <td><%= (((parseFloat(item.currentPrice) - parseFloat(item.buyPrice)) * (parseFloat(item.amountPurchaced)) / parseFloat(item.buyPrice))).toFixed(2) %></td>
+                        <td>
+                            <button class="btn">Edit</button>
+                            <button class="btn">View</button>
+                            <button class="btn" onclick="deleteStock()">Delete</button>
+                        </td>
+                    </tr>   
+                <%})%>            
+            </table>   
         </div>        
         <script>
             var btns=document.getElementsByClassName("btn");
@@ -34,8 +51,13 @@
                 btns[i].id=(counter++);
             }
         </script>
+        </script>>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <script>
+        <script>         
+            function refresh(){
+                concolw.log("Refresh");
+                location.reload();
+            }
             function myFunction() {
               setInterval(function(){
                 const Http = new XMLHttpRequest();
@@ -52,11 +74,31 @@
             function changeLowerLimit(){
                 var btnId=this.event.target.id;
                 var price = prompt("Enter new lower limit");
-                document.getElementById(btnId).previousElementSibling.innerHTML = price;
+                if(price!=null)
+                    document.getElementById(btnId).innerHTML = price;
+                const data = ({
+                    "stockId":document.getElementById(btnId).previousElementSibling.innerHTML,
+                    "lowerLimit":document.getElementById(btnId).innerHTML,
+                    "upperLimit":document.getElementById(btnId).nextElementSibling.innerHTML
+                })
+                console.log(data);
+                const jsonString = JSON.stringify(data);
+                fetch('/change',{
+                    method: 'POST' ,
+                    headers:{
+                        'Content-Type':'application/json'},
+                    body : jsonString
+                }).then(()=>{console.log('done');location.reaload});
+            }
+            function changeUpperLimit(){
+                var btnId=this.event.target.id;
+                var price = prompt("Enter new upper limit");
+                if(price!=null)
+                    document.getElementById(btnId).innerHTML = price;
                 const data = ({
                     "stockId":document.getElementById(btnId).previousElementSibling.previousElementSibling.innerHTML,
                     "lowerLimit":document.getElementById(btnId).previousElementSibling.innerHTML,
-                    "upperLimit":document.getElementById(btnId).nextElementSibling.innerHTML
+                    "upperLimit":document.getElementById(btnId).innerHTML
                 })
                 console.log(data);
                 const jsonString = JSON.stringify(data);
@@ -67,23 +109,24 @@
                     body : jsonString
                 })
             }
-            function changeUpperLimit(){
+            async function  deleteStock(){
+                console.log("delete stock");
                 var btnId=this.event.target.id;
-                var price = prompt("Enter new upper limit");
-                document.getElementById(btnId).previousElementSibling.innerHTML = price;
+                var stockId = document.getElementById(btnId).parentElement.parentElement.firstElementChild.innerHTML;
                 const data = ({
-                    "stockId":document.getElementById(btnId).previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML,
-                    "lowerLimit":document.getElementById(btnId).previousElementSibling.previousElementSibling.previousElementSibling.innerHTML,
-                    "upperLimit":document.getElementById(btnId).previousElementSibling.innerHTML
+                    "stockId":stockId
                 })
-                console.log(data);
                 const jsonString = JSON.stringify(data);
-                fetch('/change',{
-                    method: 'POST' ,
-                    headers:{
-                        'Content-Type':'application/json'},
-                    body : jsonString
-                })
+                const Http = new XMLHttpRequest();
+                const url='http://localhost:4001/delete';
+                Http.open("POST", url);
+                Http.setRequestHeader('Content-Type','application/json');
+                Http.send(jsonString);
+                Http.onreadystatechange = (e) => {
+                  console.log(Http.responseText)
+                  console.log("deleted");
+                  location.reload();
+                }
             }
             </script>
         </script>      
