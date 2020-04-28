@@ -23,7 +23,7 @@ app.post('/new',(req,res)=>{
         "lowerLimit":req.body.lowerLimit,
         "upperLimit":req.body.upperLimit,
         "buyPrice":req.body.buyPrice,
-        "amountPurchaced":req.body.amountPurchaced
+        "amountInvested":req.body.amountInvested
     })
     console.log(newStock)
    main(newStock.stockId,res,-1,newStock,callback,1);   
@@ -92,7 +92,6 @@ async function main(stockId,res,idx,newStock,callback,flag2){
     },function(error) {
         console.error("Failed!", error);
     })
-    price.split(',').join('')
     console.log(price);
     newStock["currentPrice"]=price
     if(idx!=-1){

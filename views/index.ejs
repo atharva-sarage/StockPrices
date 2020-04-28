@@ -3,56 +3,99 @@
         <link rel="stylesheet" href="style.css">
         <header id="header">
             Stock Price Alerter
-        </header>
-            <button id="inputDialog" onclick="clickFun()">CLick</button>
-            <h2>Add stock to watch</h2>
+        </header>            
+            <h2>Add stock to watch</h2>                                  
             <form id="form" action='/new' method="POST">
                 <input type="text" id="stockId" name="stockId" placeholder="StockId" required>
                 <input type="text" id="buyPrice" name="buyPrice" placeholder="buying Price">
-                <input type="text" id="amountPurchaced" name="amountPurchaced" placeholder="amount Purchased">
+                <input type="text" id="amountInvested" name="amountInvested" placeholder="amount Invested">
                 <input type="text" id="lowerLimit" name="lowerLimit" placeholder="lowerLimit">
                 <input type="text" id="upperLimit" name="upperLimit" placeholder="upperLimit">
                 <button type="submit">Submit</button>
             </form>
         <hr>
-        <div id="stockList">
-            <h1>Stocks to Watch</h1>  
-            <table class="content-table">  
-                <thead>
-                    <tr>
-                        <td>Stock Id</td>
-                        <td>Lower Limit</td>
-                        <td>Upper Limit</td>
-                        <td>Current Price</td>
-                        <td>Gains</td>
-                        <td>Action</td>
-                    </tr>  
-                </thead>                  
-                <%items.stocks.forEach(function(item){%>
-                    <tr>
-                        <td onload="refresh()"><%= item.stockId %></td>
-                        <td onclick="changeLowerLimit()" class="btn"><%= item.lowerLimit %></td>
-                        <td onclick="changeUpperLimit()" class="btn"><%= item.upperLimit %></td>
-                        <td ><%= item.currentPrice %></td>
-                        <td><%= (((parseFloat(item.currentPrice) - parseFloat(item.buyPrice)) * (parseFloat(item.amountPurchaced)) / parseFloat(item.buyPrice))).toFixed(2) %></td>
-                        <td>
-                            <button class="btn">Edit</button>
-                            <button class="btn">View</button>
-                            <button class="btn" onclick="deleteStock()">Delete</button>
-                        </td>
-                    </tr>   
-                <%})%>            
-            </table>   
-        </div>        
+        <div>
+            <div id="stockList">
+                <h1>Stocks to Watch</h1>  
+                <table class="content-table">  
+                    <thead>
+                        <tr>
+                            <td>Stock Id</td>
+                            <td>Lower Limit</td>
+                            <td>Upper Limit</td>
+                            <td>Amound Invested</td>
+                            <td>Initial Price</td>
+                            <td>Current Price</td>
+                            <td>Gains</td>
+                            <td>Action</td>
+                        </tr>  
+                    </thead>                  
+                    <%items.stocks.forEach(function(item){%>
+                        <tr>
+                            <td onload="refresh()"><%= item.stockId %></td>
+                            <td ><%= item.lowerLimit %></td>
+                            <td ><%= item.upperLimit %></td>
+                            <td ><%= item.amountInvested %></td>
+                            <td ><%= item.buyPrice %></td>
+                            <td ><%= item.currentPrice %></td>
+                            <td><%= (((parseFloat(item.currentPrice) - parseFloat(item.buyPrice)) * (parseFloat(item.amountInvested)) / parseFloat(item.buyPrice))).toFixed(2) %></td>
+                            <td>
+                                <button class="btn" onclick="dialogView()">Edit</button>
+                                <button class="btn" onclick="deleteStock()">Delete</button>
+                            </td>
+                        </tr>   
+                    <%})%>  
+                </table>                   
+            </div>   
+            <div id="edit">
+                    <h1>Change limits</h1>
+                    Stock Id : <input type="text" id="sid" disabled="disabled">
+                    Lower Limit: <input type="text" id="lowerL" >
+                    Upper Limit: <input type="text" id="upperL">
+            </div>     
+        </div>       
+        <script>         
+            function dialogView(id,low,high){
+                console.log("clicked")
+                document.getElementById("edit").style.visibility= "visible";
+                var btnId=this.event.target.id;
+                document.getElementById("sid").value=document.getElementById(btnId).parentElement.parentElement.firstElementChild.innerHTML;
+                document.getElementById("upperL").value=document.getElementById(btnId).parentElement.parentElement.firstElementChild.nextElementSibling.nextElementSibling.innerHTML;
+                document.getElementById("lowerL").value=document.getElementById(btnId).parentElement.parentElement.firstElementChild.nextElementSibling.innerHTML;
+                $('#edit').dialog({
+                    buttons: { "Ok": function() {
+                        console.log("ok");
+                        console.log(document.getElementById("upperL").value);                       
+                        if(document.getElementById("sid").value !="")
+                            document.getElementById(btnId).parentElement.parentElement.firstElementChild.innerHTML=document.getElementById("sid").value;
+                        if(document.getElementById("upperL").value !="")
+                            document.getElementById(btnId).parentElement.parentElement.firstElementChild.nextElementSibling.nextElementSibling.innerHTML=document.getElementById("upperL").value;
+                        if(document.getElementById("lowerL").value !="")
+                            document.getElementById(btnId).parentElement.parentElement.firstElementChild.nextElementSibling.innerHTML=document.getElementById("lowerL").value;                        
+                        document.getElementById("edit").style.visibility= "hidden";
+                        var data=({
+                            "stockId":document.getElementById(btnId).parentElement.parentElement.firstElementChild.innerHTML,
+                            "upperLimit":document.getElementById(btnId).parentElement.parentElement.firstElementChild.nextElementSibling.nextElementSibling.innerHTML,
+                            "lowerLimit":document.getElementById(btnId).parentElement.parentElement.firstElementChild.nextElementSibling.innerHTML
+                        })
+                        changeLimits(data)
+                        $( this ).dialog( "close" );
+                    }}
+                });                
+                console.log(document.getElementById("lowerL").value);
+            }
+        </script>
         <script>
-            var btns=document.getElementsByClassName("btn");
             var counter = 1;
+            var btns = document.getElementsByClassName("btn")
             for (var i=0;i<btns.length;i++){
                 btns[i].id=(counter++);
             }
         </script>
-        </script>>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        </script>     
+        <link rel="stylesheet" href="jquery.css" />
+        <script src="jquerymin.js"></script> 
+        <script src="jqueryUI.js"></script>
         <script>         
             function refresh(){
                 concolw.log("Refresh");
@@ -71,16 +114,7 @@
                 }
                 },20000);
             };                  
-            function changeLowerLimit(){
-                var btnId=this.event.target.id;
-                var price = prompt("Enter new lower limit");
-                if(price!=null)
-                    document.getElementById(btnId).innerHTML = price;
-                const data = ({
-                    "stockId":document.getElementById(btnId).previousElementSibling.innerHTML,
-                    "lowerLimit":document.getElementById(btnId).innerHTML,
-                    "upperLimit":document.getElementById(btnId).nextElementSibling.innerHTML
-                })
+            function changeLimits(data){         
                 console.log(data);
                 const jsonString = JSON.stringify(data);
                 fetch('/change',{
@@ -89,26 +123,7 @@
                         'Content-Type':'application/json'},
                     body : jsonString
                 }).then(()=>{console.log('done');location.reaload});
-            }
-            function changeUpperLimit(){
-                var btnId=this.event.target.id;
-                var price = prompt("Enter new upper limit");
-                if(price!=null)
-                    document.getElementById(btnId).innerHTML = price;
-                const data = ({
-                    "stockId":document.getElementById(btnId).previousElementSibling.previousElementSibling.innerHTML,
-                    "lowerLimit":document.getElementById(btnId).previousElementSibling.innerHTML,
-                    "upperLimit":document.getElementById(btnId).innerHTML
-                })
-                console.log(data);
-                const jsonString = JSON.stringify(data);
-                fetch('/change',{
-                    method: 'POST' ,
-                    headers:{
-                        'Content-Type':'application/json'},
-                    body : jsonString
-                })
-            }
+            }          
             async function  deleteStock(){
                 console.log("delete stock");
                 var btnId=this.event.target.id;

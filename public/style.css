@@ -1,6 +1,10 @@
 * {
     font-family: sans-serif; /* Change your font family */
   }
+#edit {
+    visibility: hidden;
+}  
+
 #header{
     background-color: blue;
     text-align:center;
@@ -79,6 +83,3 @@ box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
     font-weight: bold;
     color: red;
   }
-  
-
-
