@@ -13,7 +13,10 @@ const stockSchema = new mongoose.Schema({
     amountInvested : {
         type: String
     },
-    buyingPrice: {
+    buyPrice: {
+        type: String
+    },
+    currentPrice: {
         type: String
     }
 })
