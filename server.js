@@ -1,9 +1,14 @@
 require('dotenv').config();
-const express = require('express')
+const express = require('express');
 const cheerio = require('cheerio');
 const request = require('request');
 const nodemailer = require('nodemailer');
 const app = express()
+const mongoose = require('mongoose');
+mongoose.connect(process.env.DATABASE_URL,{useNewUrlParser:true});
+const db = mongoose.connection;
+db.on('error',error => console.log(error));
+db.once('open',()=>console.log("connected to moongoose"));
 app.use(require("body-parser").json())
 app.use(express.urlencoded({extended:false}))
 var JSONStocks = '{"stocks":[]}' // JSON stocks is a json STRING
@@ -92,6 +97,7 @@ async function main(stockId,res,idx,newStock,callback,flag2){
     },function(error) {
         console.error("Failed!", error);
     })
+    price=price.replace(/,/g, "");
     console.log(price);
     newStock["currentPrice"]=price
     if(idx!=-1){
