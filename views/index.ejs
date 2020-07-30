@@ -104,7 +104,7 @@
             function myFunction() {
               setInterval(function(){
                 const Http = new XMLHttpRequest();
-                const url='http://localhost:4001/update';
+                const url='http://localhost:4001';
                 Http.open("GET", url);
                 Http.send();
                 Http.onreadystatechange = (e) => {
@@ -112,7 +112,7 @@
                   console.log("updated");
                   location.reload();
                 }
-                },20000);
+                },60000);
             };                  
             function changeLimits(data){         
                 console.log(data);

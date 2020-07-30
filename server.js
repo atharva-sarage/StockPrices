@@ -3,6 +3,7 @@ const express = require('express');
 const cheerio = require('cheerio');
 const request = require('request');
 const nodemailer = require('nodemailer');
+const cron = require('node-cron');
 const app = express()
 const mongoose = require('mongoose');
 const Stock = require('./models/stock')
@@ -37,18 +38,18 @@ app.post('/new',async (req,res)=>{
     main(newStock.stockId,res,newStock,callback,1);   
 
 }) 
-app.get('/update',async(req,res)=>{
-    console.log("update request recieved");
-    counter = 0;
-    let searchOptions = {}
-    const stocks = await Stock.find(searchOptions);
-    for(var i=0;i<stocks.length;i++){
-        if(i== (stocks.length -1) )
-            main(stocks[i].stockId,res,stocks[i],callback2,0);   
-        else
-            main(stocks[i].stockId,res,stocks[i],callback2,0); 
-    }      
-})
+// app.get('/update',async(req,res)=>{
+//     console.log("update request recieved");
+//     counter = 0;
+//     let searchOptions = {}
+//     const stocks = await Stock.find(searchOptions);
+//     for(var i=0;i<stocks.length;i++){
+//         if(i== (stocks.length -1) )
+//             main(stocks[i].stockId,res,stocks[i],callback2,0);   
+//         else
+//             main(stocks[i].stockId,res,stocks[i],callback2,0); 
+//     }      
+// })
 app.post('/change',async(req,res)=>{
     console.log("change post request");
     console.log(req.body);
@@ -114,21 +115,11 @@ async function main(stockId,res,newStock,callback,flag2){
         sendEmailTesting(newStock["stockId"]+"has crossed lower limit");
     if(flag2 == 1)
         callback(res)
-    else if(flag2 === 0)
-        callback2(res)
 }
 function callback(res){ // not needed as we added to database on /new route itself
    res.redirect('/');
 }
-async function callback2(res){
-    counter++;
-    console.log(counter)
-    let searchOptions = {}
-    const stocks = await Stock.find(searchOptions);
-    if(counter == stocks.length){          
-        res.redirect('/');
-    }
-}
+
 function sendEmailTesting(message){
     var transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -151,3 +142,15 @@ function sendEmailTesting(message){
         }
       }); 
 }
+
+async function PriceCheckBackgroundTask(){
+    console.log("cron job started at : "+new Date());
+    let searchOptions = {}
+    const stocks = await Stock.find(searchOptions);
+    for(var i=0;i<stocks.length;i++){
+        main(stocks[i].stockId,null,stocks[i],null,0);   
+    }       
+}
+cron.schedule("*/30 * * * * *",async () => {
+    await PriceCheckBackgroundTask(); 
+}) 
